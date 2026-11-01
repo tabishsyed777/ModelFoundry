@@ -5,7 +5,7 @@ import io
 import pandas as pd
 import streamlit as st
 
-from modelfoundry import CLASSIFIERS, REGRESSORS, export_model, generate_script, infer_task, train_models
+from modelfoundry import CLASSIFIERS, REGRESSORS, export_model, generate_script, infer_task, sample_dataset, train_models
 
 st.set_page_config(page_title="ModelFoundry · AutoML Studio", page_icon="◈", layout="wide")
 st.markdown("""
@@ -44,11 +44,14 @@ with st.sidebar:
     st.divider()
     st.markdown("**1 · Add data**")
     uploaded = st.file_uploader("Choose a CSV dataset", type=["csv"], help="CSV files are processed in this browser session and are not uploaded to a remote service.")
+    if st.button("Try a sample dataset", use_container_width=True):
+        st.session_state["sample_mode"] = True
+        st.rerun()
     st.markdown('<p class="small">Your dataset stays in this app session. Use a target column with at least two values.</p>', unsafe_allow_html=True)
     st.divider()
     st.markdown("**2 · Configure training**")
 
-if uploaded is None:
+if uploaded is None and not st.session_state.get("sample_mode", False):
     left, right = st.columns([1.15, .85], gap="large")
     with left:
         st.markdown('<div class="card"><span class="tag">READY FOR YOUR CSV</span><h3 style="margin-top:18px">A repeatable model comparison</h3><p class="small">ModelFoundry builds preprocessing and model pipelines together, so imputing and encoding happen inside each training split.</p><ol class="small"><li>Upload a table</li><li>Select the value you want to predict</li><li>Choose candidate algorithms</li><li>Train, compare, and export</li></ol></div>', unsafe_allow_html=True)
@@ -56,11 +59,16 @@ if uploaded is None:
         st.markdown('<div class="card"><div class="eyebrow">SUPPORTED TASKS</div><h3>Classification</h3><p class="small">Predict a category such as churn, species, or approval status.</p><h3>Regression</h3><p class="small">Predict a numeric value such as price, demand, or duration.</p><hr/><p class="small">No sample result is presented as a real benchmark. Upload a dataset to create your own run.</p></div>', unsafe_allow_html=True)
     st.stop()
 
-try:
-    data = pd.read_csv(uploaded, low_memory=False)
-except Exception as exc:
-    st.error(f"Could not read this CSV: {exc}")
-    st.stop()
+if uploaded is not None:
+    st.session_state["sample_mode"] = False
+    try:
+        data = pd.read_csv(uploaded, low_memory=False)
+    except Exception as exc:
+        st.error(f"Could not read this CSV: {exc}")
+        st.stop()
+else:
+    data = sample_dataset()
+    st.info("Synthetic example loaded for demonstration. Upload your own CSV any time to replace it.")
 
 if len(data) < 12 or data.shape[1] < 2:
     st.error("The dataset needs at least 12 rows and two columns (features plus a target).")
