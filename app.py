@@ -49,8 +49,14 @@ with st.sidebar:
     api_key, openai_model = openai_settings()
     if api_key:
         st.markdown(f'<p class="small">OpenAI agent connected · {openai_model}</p>', unsafe_allow_html=True)
+        use_agent = st.checkbox(
+            "Send schema and run results to OpenAI for agent guidance",
+            value=False,
+            help="This sends column names, data types, missing percentages, distinct counts, the selected model, holdout metrics, and generated training code. Dataset rows and cell values stay local. API usage may incur charges.",
+        )
     else:
         st.markdown('<p class="small">Local trainer ready · add an OpenAI API key to enable the agent.</p>', unsafe_allow_html=True)
+        use_agent = False
     st.divider()
     st.markdown("**2 · Configure training**")
 
@@ -111,12 +117,12 @@ with st.sidebar:
             st.caption(f"The agent will suggest a target; local fallback: {suggested_target}")
         test_percent = st.slider("Holdout data", min_value=15, max_value=35, value=20, step=5, help="This share is held aside for evaluation and is not used to fit the model.")
     api_key, openai_model = openai_settings()
-    button_label = "Plan and train with AI agent" if api_key else "Train selected model locally"
+    button_label = "Plan and train with AI agent" if api_key and use_agent else "Train selected model locally"
     train = st.button(button_label, type="primary", use_container_width=True)
 
 st.markdown(f'<span class="tag">{selected_task.upper()}</span> &nbsp; <span class="small">Model: {selected_algorithm} · target suggestion: {target_override or suggested_target}</span>', unsafe_allow_html=True)
-if api_key:
-    st.caption("The agent sends column names and schema summaries to OpenAI, never dataset rows. API usage may incur charges.")
+if api_key and use_agent:
+    st.caption("For this run, OpenAI receives column names, schema summaries, the selected model, holdout metrics, and generated code. Raw dataset rows are not sent. API usage may incur charges.")
 else:
     with st.expander("Connect the OpenAI agent"):
         st.markdown("Add `OPENAI_API_KEY` to a local `.env` file using `.env.example` as a guide, then restart the app. The local trainer works without an API key.")
@@ -125,7 +131,7 @@ if train:
         agent_plan = None
         client = None
         agent_response_call = None
-        if api_key:
+        if api_key and use_agent:
             with st.spinner("The agent is reviewing the dataset schema and assembling the training workflow…"):
                 client, model_name, agent_response_call, agent_plan = prepare_run(
                     data, selected_algorithm, selected_task, target_override or suggested_target
@@ -138,7 +144,7 @@ if train:
             metrics, result = train_models(data, target, selected_task, [selected_algorithm], test_percent / 100)
         script = generate_script(target, selected_task, [selected_algorithm], test_percent / 100)
         report = ""
-        if api_key and agent_plan:
+        if api_key and use_agent and agent_plan:
             with st.spinner("The agent is explaining the model syntax and holdout results…"):
                 report = explain_run(
                     client, model_name, agent_response_call, agent_plan,
