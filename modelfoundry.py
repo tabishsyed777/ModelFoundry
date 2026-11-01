@@ -53,6 +53,29 @@ def infer_task(target: pd.Series) -> str:
     return "classification" if (not pd.api.types.is_numeric_dtype(target) or target.nunique() <= 12) else "regression"
 
 
+def sample_dataset() -> pd.DataFrame:
+    """Return a deterministic, clearly synthetic customer churn dataset for a quick demo."""
+    rng = np.random.default_rng(47)
+    rows = 420
+    tenure = rng.integers(1, 73, rows)
+    monthly_charge = np.clip(rng.normal(74, 22, rows), 18, 155).round(2)
+    support_calls = rng.poisson(np.clip(2.3 - tenure / 55, 0.5, None), rows)
+    late_payments = rng.binomial(4, np.clip(0.16 + monthly_charge / 500, 0.08, 0.48), rows)
+    plan = rng.choice(["Basic", "Plus", "Premium"], rows, p=[0.43, 0.39, 0.18])
+    plan_effect = np.select([plan == "Basic", plan == "Premium"], [0.25, -0.30], default=0.0)
+    score = -2.1 + 0.035 * (monthly_charge - 70) + 0.31 * support_calls + 0.38 * late_payments - 0.033 * tenure + plan_effect
+    probability = 1 / (1 + np.exp(-score))
+    churn = rng.binomial(1, probability)
+    return pd.DataFrame({
+        "tenure_months": tenure,
+        "monthly_charge": monthly_charge,
+        "support_calls_90d": support_calls,
+        "late_payments_12m": late_payments,
+        "plan": plan,
+        "churned": np.where(churn == 1, "Yes", "No"),
+    })
+
+
 def build_pipeline(frame: pd.DataFrame, estimator: Any) -> Pipeline:
     numeric = frame.select_dtypes(include=["number", "bool"]).columns.tolist()
     categorical = [column for column in frame.columns if column not in numeric]
