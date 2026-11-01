@@ -25,7 +25,7 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Open the local URL printed by Streamlit, upload a CSV, select a target, choose one or more algorithms, and click **Train and compare models**.
+Open the local URL printed by Streamlit, upload a CSV, choose an algorithm, and start a training run. The target is suggested automatically; you can select an override in Advanced options.
 
 ### Enable the OpenAI agent
 
@@ -36,7 +36,7 @@ OPENAI_API_KEY=your_api_key
 MODELFOUNDRY_OPENAI_MODEL=gpt-6-luna
 ```
 
-Restart Streamlit. The agent uses OpenAI's Responses API with a restricted function tool; training and generated Python execution stay in the local application. API requests can incur charges. The agent receives dataset column names, data types, missing-value percentages, distinct-value counts, the selected algorithm, and holdout metrics. It does not receive row values.
+Restart Streamlit. The agent uses OpenAI's Responses API with a restricted function tool; training and generated Python execution stay in the local application. The connection is opt-in for each run. After configuring a key, select **Send schema and run results to OpenAI for agent guidance** before starting an agent run. That request sends column names, data types, missing-value percentages, distinct-value counts, the selected algorithm, holdout metrics, and generated training code. It does not send dataset rows or cell values. API usage may incur charges.
 
 Without an API key, the selected model can still be trained locally, but AI target selection and explanations are unavailable.
 
