@@ -17,7 +17,7 @@ from openai import OpenAI
 load_dotenv()
 
 DEFAULT_MODEL = "gpt-6-luna"
-TOOL_NAME = "prepare_training_run"
+TOOL_NAME = "run_selected_training"
 
 
 def openai_settings() -> tuple[str | None, str]:
@@ -65,7 +65,7 @@ def prepare_run(
     tool = {
         "type": "function",
         "name": TOOL_NAME,
-        "description": "Prepare the selected algorithm's safe local training workflow. Choose the target column from the supplied schema. This tool does not execute generated Python; the application trains an allow-listed scikit-learn pipeline locally.",
+        "description": "Start a local training run for the algorithm and task the user selected. Choose the target column from the supplied schema. The application runs only its allow-listed scikit-learn pipeline and returns holdout metrics; generated Python is never executed by the agent.",
         "parameters": schema,
         "strict": True,
     }
