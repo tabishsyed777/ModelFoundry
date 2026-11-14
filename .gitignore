@@ -7,3 +7,5 @@ __pycache__/
 !.env.example
 *.joblib
 *.pkl
+runs/
+*.sqlite3

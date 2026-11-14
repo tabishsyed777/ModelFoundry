@@ -1,0 +1,13 @@
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 MODELFOUNDRY_REGISTRY=/data/registry
+WORKDIR /app
+COPY requirements-ops.txt ./
+RUN --mount=type=secret,id=pip_ca \
+    if [ -f /run/secrets/pip_ca ]; then export PIP_CERT=/run/secrets/pip_ca; fi; \
+    pip install --no-cache-dir -r requirements-ops.txt && useradd --uid 10001 --create-home appuser && mkdir /data && chown appuser:appuser /data
+COPY modelfoundry.py ./
+COPY modelops/ ./modelops/
+RUN chmod -R a+rX /app
+USER appuser
+EXPOSE 8000
+CMD ["python", "-m", "uvicorn", "modelops.api:app", "--host", "0.0.0.0", "--port", "8000"]

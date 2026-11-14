@@ -2,6 +2,10 @@
 
 ModelFoundry is an AI-assisted workbench for tabular CSV data. Upload a dataset and choose a classification or regression algorithm. An OpenAI agent inspects the dataset schema, suggests a target, invokes the local training workflow, and explains the selected algorithm's syntax and evaluation results. Download the fitted model and generated Python script to reproduce the run.
 
+## Deployment and monitoring
+
+ModelFoundry now includes a local prediction API, immutable model versions, SQLite-backed latency metrics, and training-reference input-drift checks. Start with `python -m pip install -r requirements-test.txt` and `python -m modelops.demo`, then open `runs/modelops-demo/report.html`. See [deployment and monitoring setup](docs/MODELOPS.md) for CSV registration, serving, container instructions, and limits. No API key is needed for local training or inference.
+
 ## Features
 
 - OpenAI agent uses function calling to prepare a constrained training run
