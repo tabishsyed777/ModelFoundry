@@ -149,6 +149,7 @@ def train_models(
     metrics = metrics.sort_values(primary, ascending=(primary == "RMSE")).reset_index(drop=True)
     result = {
         "models": fitted,
+        "X_train": X_train,
         "X_test": X_test,
         "y_test": y_test,
         "primary_metric": primary,
